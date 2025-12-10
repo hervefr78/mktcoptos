@@ -1,0 +1,254 @@
+.agent-prompts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.page-header .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.page-description {
+  color: #4b5563;
+  margin: 6px 0 0;
+  max-width: 720px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+button.primary {
+  background: linear-gradient(120deg, #2563eb, #7c3aed);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+button.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.18);
+}
+
+button.ghost {
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.agent-prompts-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.8fr 1.2fr;
+  gap: 16px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.panel-header h3 {
+  margin: 0;
+}
+
+.panel-header .muted,
+.muted {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.agent-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agent-pill {
+  text-align: left;
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #fafafa;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.agent-pill.active {
+  border-color: #2563eb;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.08);
+  background: #eef2ff;
+}
+
+.agent-pill-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agent-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.agent-desc {
+  color: #4b5563;
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-custom {
+  background: #ecfeff;
+  color: #0e7490;
+}
+
+.badge-default {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.prompt-area {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  background: #f9fafb;
+  min-height: 120px;
+}
+
+.preview {
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 12px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-box {
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 12px;
+  border-radius: 10px;
+  min-height: 120px;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.assistant .generator-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.generator-form input,
+.generator-form textarea {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.generator-form textarea {
+  resize: vertical;
+}
+
+button.full {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.status-message {
+  color: #2563eb;
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+
+.best-practices ul {
+  list-style: disc;
+  padding-left: 18px;
+  margin: 8px 0 0;
+  color: #111827;
+}
+
+.best-practices li {
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+@media (max-width: 1200px) {
+  .agent-prompts-grid {
+    grid-template-columns: 1fr;
+  }
+}

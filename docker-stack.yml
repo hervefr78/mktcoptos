@@ -1,0 +1,272 @@
+version: '3.8'
+
+# ============================================================================
+# MARKETER APP - DOCKER SWARM STACK CONFIGURATION
+# ============================================================================
+# This file extends docker-compose.yml for production deployment with Docker Swarm
+#
+# Deploy: docker stack deploy -c docker-stack.yml marketer
+# Update: docker service update marketer_backend
+# Remove: docker stack rm marketer
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-marketer_db}
+      POSTGRES_USER: ${POSTGRES_USER:-marketer_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - marketer_network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-marketer_user} -d ${POSTGRES_DB:-marketer_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - marketer_network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    image: ${REGISTRY:-localhost}/marketer-backend:${VERSION:-latest}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-marketer_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-marketer_db}
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_HOST: http://host.docker.internal:11434
+      COMFYUI_BASE_URL: http://host.docker.internal:8188
+      CHROMADB_HOST: http://chromadb:8000
+      USE_CLOUD: ${USE_CLOUD:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      ENVIRONMENT: production
+    networks:
+      - marketer_network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.backend.rule=Host(`api.marketer.local`)"
+        - "traefik.http.services.backend.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Celery Worker
+  worker:
+    image: ${REGISTRY:-localhost}/marketer-backend:${VERSION:-latest}
+    command: celery -A tasks worker --loglevel=info --concurrency=4
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-marketer_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-marketer_db}
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_HOST: http://host.docker.internal:11434
+      COMFYUI_BASE_URL: http://host.docker.internal:8188
+      CHROMADB_HOST: http://chromadb:8000
+      USE_CLOUD: ${USE_CLOUD:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    networks:
+      - marketer_network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Frontend React App
+  frontend:
+    image: ${REGISTRY:-localhost}/marketer-frontend:${VERSION:-latest}
+    environment:
+      REACT_APP_API_URL: ${API_URL:-https://api.marketer.local}
+    networks:
+      - marketer_network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.frontend.rule=Host(`marketer.local`)"
+        - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+  # ChromaDB Vector Store
+  chromadb:
+    image: chromadb/chroma:latest
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      ANONYMIZED_TELEMETRY: ${CHROMA_TELEMETRY:-false}
+      ALLOW_RESET: ${CHROMA_ALLOW_RESET:-false}
+    networks:
+      - marketer_network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Traefik Reverse Proxy (Optional - for production)
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+    networks:
+      - marketer_network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik.rule=Host(`traefik.marketer.local`)"
+        - "traefik.http.routers.traefik.service=api@internal"
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  chromadb_data:
+    driver: local
+  traefik_certs:
+    driver: local
+
+networks:
+  marketer_network:
+    driver: overlay
+    attachable: true

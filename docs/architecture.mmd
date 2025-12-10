@@ -1,0 +1,9 @@
+flowchart LR
+    U[User] -->|HTTP| FE[React Frontend]
+    FE -->|API calls| BE[FastAPI Backend]
+    BE -->|Async tasks| Celery[Celery Worker]
+    BE <--> Redis[(Redis)]
+    Celery <--> Redis
+    Celery --> RAG[RAG Agent]
+    RAG --> Ollama[Ollama LLM]
+    RAG <--> VS["Vector Store (FAISS + SentenceTransformer)"]

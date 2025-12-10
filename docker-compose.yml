@@ -1,0 +1,195 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: marketer_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-marketer_db}
+      POSTGRES_USER: ${POSTGRES_USER:-marketer_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-marketer_pass}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-marketer_user} -d ${POSTGRES_DB:-marketer_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - marketer_network
+
+  # Redis Cache & Queue Broker
+  redis:
+    image: redis:7-alpine
+    container_name: marketer_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - marketer_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: marketer_backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-marketer_user}:${POSTGRES_PASSWORD:-marketer_pass}@postgres:5432/${POSTGRES_DB:-marketer_db}
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_HOST: http://host.docker.internal:11434
+      COMFYUI_BASE_URL: http://host.docker.internal:8188
+      CHROMADB_HOST: http://chromadb:8000
+      USE_CLOUD: ${USE_CLOUD:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./logs:/app/logs
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - marketer_network
+
+  # Celery Worker
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: marketer_worker
+    command: celery -A tasks worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-marketer_user}:${POSTGRES_PASSWORD:-marketer_pass}@postgres:5432/${POSTGRES_DB:-marketer_db}
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_HOST: http://host.docker.internal:11434
+      COMFYUI_BASE_URL: http://host.docker.internal:8188
+      CHROMADB_HOST: http://chromadb:8000
+      USE_CLOUD: ${USE_CLOUD:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./logs:/app/logs
+      - uploads_data:/app/uploads
+    restart: unless-stopped
+    networks:
+      - marketer_network
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: marketer_frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+      REACT_APP_BYPASS_AUTH: ${REACT_APP_BYPASS_AUTH:-false}
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm start
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - marketer_network
+
+  # ChromaDB Vector Store
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: marketer_chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      ANONYMIZED_TELEMETRY: ${CHROMA_TELEMETRY:-false}
+      ALLOW_RESET: ${CHROMA_ALLOW_RESET:-true}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - marketer_network
+
+  # ComfyUI - AI Image Generation
+  comfyui:
+    image: yanwk/comfyui-boot:latest
+    container_name: marketer_comfyui
+    ports:
+      - "8188:8188"
+    volumes:
+      - comfyui_data:/root
+      - ./comfyui_models:/root/models
+    environment:
+      CLI_ARGS: "--listen 0.0.0.0 --port 8188"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - marketer_network
+    profiles:
+      - gpu
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  chromadb_data:
+    driver: local
+  comfyui_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  marketer_network:
+    driver: bridge

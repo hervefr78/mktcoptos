@@ -1,0 +1,121 @@
+# ============================================================================
+# MARKETER APP - DOCKER IGNORE
+# ============================================================================
+# Excludes files from Docker build context for faster builds
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+README.md
+LICENSE
+
+# Environment files (use --env-file instead)
+.env
+.env.*
+.env.example
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+venv/
+env/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Tests
+tests/
+*_test.go
+*_test.py
+test_*.py
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+docker-stack.yml
+.dockerignore
+
+# Scripts (not needed in containers)
+scripts/
+Makefile
+
+# Backups
+backups/
+*.backup
+*.bak
+*.sql
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+
+# Mac specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Data files (use volumes instead)
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# PDFs and media
+*.pdf
+*.mp4
+*.mov
+*.avi
+
+# Large files
+*.tar.gz
+*.zip
+*.rar

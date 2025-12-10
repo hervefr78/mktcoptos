@@ -1,0 +1,345 @@
+.images-page {
+  min-height: 100vh;
+  background-color: var(--background-color, #f9fafb);
+}
+
+/* Header */
+.images-header {
+  background-color: var(--surface-color, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  padding: 24px;
+}
+
+.images-header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.images-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.images-count {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* Upload Section */
+.images-upload-section {
+  background-color: var(--surface-color, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  padding: 24px;
+}
+
+.images-upload-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.images-upload-container h2 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.upload-preview {
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.upload-preview-img {
+  max-width: 100%;
+  height: auto;
+  max-height: 300px;
+  border-radius: 8px;
+}
+
+.upload-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.upload-actions .btn {
+  flex: 1;
+}
+
+/* Filters */
+.images-filters {
+  background-color: var(--surface-color, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  padding: 16px 24px;
+}
+
+.filters-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.filter-item label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #374151);
+  margin-bottom: 8px;
+}
+
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 6px;
+  background-color: var(--surface-color, #ffffff);
+  color: var(--text-primary, #111827);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Content */
+.images-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.images-loading,
+.images-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loading-text {
+  color: var(--text-secondary, #6b7280);
+  font-size: 16px;
+}
+
+.empty-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.empty-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-tertiary, #9ca3af);
+}
+
+/* Image Grid */
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.image-card {
+  background-color: var(--surface-color, #ffffff);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.image-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Image Thumbnail */
+.image-thumbnail {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background-color: var(--background-color, #f3f4f6);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.image-thumbnail:hover .thumbnail-img {
+  transform: scale(1.05);
+}
+
+.thumbnail-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.image-thumbnail:hover .thumbnail-overlay {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.view-icon {
+  font-size: 32px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.image-thumbnail:hover .view-icon {
+  opacity: 1;
+}
+
+/* Card Content */
+.image-card-content {
+  padding: 16px;
+}
+
+.model-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: var(--primary-bg, #dbeafe);
+  color: var(--primary-color, #1e40af);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.image-prompt {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--text-primary, #374151);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.image-metadata {
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.image-metadata p {
+  margin: 4px 0;
+}
+
+.metadata-label {
+  font-weight: 500;
+}
+
+/* Actions */
+.image-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.image-actions .btn {
+  flex: 1;
+}
+
+/* Pagination */
+.images-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  padding: 0 16px;
+}
+
+/* Full-size Image Modal */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .images-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-actions {
+    flex-direction: column;
+  }
+}
